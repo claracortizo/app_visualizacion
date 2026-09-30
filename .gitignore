@@ -1,0 +1,13 @@
+# Secretos y entornos
+.env
+
+# Logs
+*.log
+
+# Basura de Python
+__pycache__/
+*.pyc
+venv/
+
+# Node
+node_modules/
