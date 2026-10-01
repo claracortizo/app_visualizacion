@@ -1,5 +1,6 @@
 # Secretos y entornos
 .env
+.streamlit/secrets.toml
 
 # Logs
 *.log

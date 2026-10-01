@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import os
 import numpy as np
 
@@ -14,7 +13,7 @@ def calculate_metrics(df, col):
         'Valor Medio': df[col].mean(),
         'Máximo': df[col].max(),
         'Mínimo': df[col].min(),
-        'Integral': np.trapz(df[col], df['theta']),
+        'Integral': np.trapezoid(df[col], df['theta']),
         'Desv. Estándar': df[col].std(),
     }
     # Uniformidad Absoluta: media de abs / max de abs
@@ -27,61 +26,6 @@ def calculate_metrics(df, col):
     metrics['Coef. Variación'] = 1 - (df[col].std() / abs_mean) if abs_mean != 0 else 0
     
     return metrics
-
-def export_plot_for_paper(fig, col_name):
-    # Crear una nueva figura desde cero para evitar conflictos de template
-    fig_paper = go.Figure()
-    
-    # Paleta de colores para forzar
-    colors = px.colors.qualitative.Plotly
-    
-    # Añadir trazas manualmente forzando el color
-    for i, trace in enumerate(fig.data):
-        fig_paper.add_trace(go.Scatter(
-            x=trace.x,
-            y=trace.y,
-            name=trace.name,
-            line=dict(color=colors[i % len(colors)], width=2)
-        ))
-    
-    # Mapping units
-    units = {'wallHeatFlux': '[W/m²]', 'qr': '[W/m²]', 'T': '[K]'}
-    unit = units.get(col_name, '')
-    
-    # Añadir grid, ejes (líneas negras), y estilo
-    fig_paper.update_xaxes(
-        showgrid=True, gridwidth=1, gridcolor='LightGray', 
-        showline=True, linecolor='black', linewidth=1, # Eje negro
-        zeroline=False
-    )
-    fig_paper.update_yaxes(
-        showgrid=True, gridwidth=1, gridcolor='LightGray', 
-        showline=True, linecolor='black', linewidth=1, # Eje negro
-        zeroline=False
-    )
-    
-    fig_paper.update_layout(
-        title=None,
-        xaxis_title=r"$\gamma \text{ [°]}$",
-        yaxis_title=f"{col_name} {unit}",
-        font=dict(family="serif", size=24, color="black"), 
-        # Aumentar margen inferior para la leyenda y margen izquierdo para el eje Y
-        margin=dict(l=120, r=40, t=60, b=150),
-        width=800, 
-        height=600,
-        # Fondo blanco
-        paper_bgcolor="white",
-        plot_bgcolor="white",
-        # Mover leyenda abajo
-        legend=dict(
-            orientation="h",
-            yanchor="top",
-            y=-0.3,
-            xanchor="center",
-            x=0.5
-        )
-    )
-    return fig_paper.to_image(format="pdf")
 
 def display_formulas():
     with st.expander("ℹ️ Ver fórmulas utilizadas"):
@@ -206,9 +150,7 @@ else:
                 cols = ['wallHeatFlux', 'qr', 'T']
                 for col in cols:
                     fig = px.line(df_case, x='theta', y=col, labels={'theta': 'Gamma [°]'}, title=f"Distribución de {col}")
-                    st.plotly_chart(fig, use_container_width=True)
-                    pdf_data = export_plot_for_paper(fig, col)
-                    st.download_button(f"💾 Descargar {col} (PDF)", pdf_data, file_name=f"{col}_{selected_label}.pdf", mime="application/pdf")
+                    st.plotly_chart(fig, width="stretch")
             
             with tab2:
                 st.subheader(f"Métricas Cuantitativas: {selected_label}")
@@ -251,9 +193,7 @@ else:
                     cols = ['wallHeatFlux', 'qr', 'T']
                     for col in cols:
                         fig = px.line(combined_df, x='theta', y=col, labels={'theta': 'Gamma [°]'}, color='Caso', title=f"Comparativa de {col}")
-                        st.plotly_chart(fig, use_container_width=True)
-                        pdf_data = export_plot_for_paper(fig, col)
-                        st.download_button(f"💾 Descargar Comparativa {col} (PDF)", pdf_data, file_name=f"comparativa_{col}.pdf", mime="application/pdf")
+                        st.plotly_chart(fig, width="stretch")
                 
                 with tab2:
                     st.subheader("Tabla Comparativa de Métricas")
@@ -294,10 +234,10 @@ else:
         
         fig_heat = px.density_heatmap(df_all_metrics, x=x_axis, y=y_axis, z=metric_to_plot, 
                                       histfunc=histfunc, title=f"Mapa de Calor: {selected_metric_display} (Agregación: {histfunc})")
-        st.plotly_chart(fig_heat, use_container_width=True)
+        st.plotly_chart(fig_heat, width="stretch")
         
         # Correlación
         st.subheader("Matriz de Correlación")
         df_corr = df_all_metrics.drop(columns=['Label']).corr()
         fig_corr = px.imshow(df_corr, text_auto=True, title="Matriz de Correlación")
-        st.plotly_chart(fig_corr, use_container_width=True)
+        st.plotly_chart(fig_corr, width="stretch")
