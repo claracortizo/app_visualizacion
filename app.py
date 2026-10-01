@@ -235,9 +235,3 @@ else:
         fig_heat = px.density_heatmap(df_all_metrics, x=x_axis, y=y_axis, z=metric_to_plot, 
                                       histfunc=histfunc, title=f"Mapa de Calor: {selected_metric_display} (Agregación: {histfunc})")
         st.plotly_chart(fig_heat, width="stretch")
-        
-        # Correlación
-        st.subheader("Matriz de Correlación")
-        df_corr = df_all_metrics.drop(columns=['Label']).corr()
-        fig_corr = px.imshow(df_corr, text_auto=True, title="Matriz de Correlación")
-        st.plotly_chart(fig_corr, width="stretch")
